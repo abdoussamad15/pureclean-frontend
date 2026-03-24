@@ -426,7 +426,7 @@ export default function CreateOrder() {
       </div>
 
       {/* STICKY BOTTOM BAR - MOBILE HEIGHT ACCOUNTED */}
-      <div className="fixed bottom-0 left-0 right-0 md:left-16 lg:left-64 z-[70] bg-white/95 backdrop-blur-md border-t border-border/80 px-4 pt-4 pb-[calc(1rem+72px)] sm:pb-4 flex flex-col items-stretch gap-4 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+      <div className="fixed bottom-[64px] pb-safe md:bottom-0 left-0 right-0 md:left-16 lg:left-64 z-[110] bg-white/95 backdrop-blur-md border-t border-border/80 px-4 pt-4 sm:pb-4 flex flex-col items-stretch gap-4 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
         
         <div className="flex items-center justify-between px-2">
            <div className="flex flex-col">
