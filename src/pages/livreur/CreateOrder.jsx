@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { createOrder, uploadImages, fetchCarpetTypes } from '../../store/livreur/livreurThunk';
 import { selectLoading, selectPendingClient } from '../../store/livreur/livreurSelectors';
+import { compressImage } from '../../utils/imageCompression';
 
 export default function CreateOrder() {
   const dispatch = useDispatch();
@@ -30,6 +31,8 @@ export default function CreateOrder() {
   }]);
 
   const [uploadingImageForIndex, setUploadingImageForIndex] = useState(null);
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [finalizeStatus, setFinalizeStatus] = useState(''); // 'compressing', 'uploading', 'creating'
 
   // Cleanup object URLs on unmount
   useEffect(() => {
@@ -187,9 +190,31 @@ export default function CreateOrder() {
     const invalid = articles.some(a => !a.type || !a.prixEstime);
     if (invalid) return toast.warning('Veuillez remplir le type and le prix pour tous les tapis');
 
+    if (isFinalizing) return;
+    setIsFinalizing(true);
+    
     try {
-      // First, upload all files for all articles and get their URLs
-      const articlesWithUrls = await Promise.all(articles.map(async (article) => {
+      // 1. COMPRESSION PHASE
+      setFinalizeStatus('compressing');
+      const articlesWithCompressedPhotos = await Promise.all(articles.map(async (article) => {
+        if (article.photos.length > 0) {
+          const compressedPhotos = await Promise.all(article.photos.map(async (p) => {
+            try {
+              const compressedFile = await compressImage(p.file, { maxWidth: 1200, maxHeight: 1200, quality: 0.7 });
+              return { ...p, file: compressedFile };
+            } catch (err) {
+              console.error("Compression error:", err);
+              return p; // fallback to original if compression fails
+            }
+          }));
+          return { ...article, photos: compressedPhotos };
+        }
+        return article;
+      }));
+
+      // 2. UPLOAD PHASE
+      setFinalizeStatus('uploading');
+      const articlesWithUrls = await Promise.all(articlesWithCompressedPhotos.map(async (article) => {
         if (article.photos.length > 0) {
           const filesToUpload = article.photos.map(p => p.file);
           const results = await dispatch(uploadImages(filesToUpload)).unwrap();
@@ -201,6 +226,8 @@ export default function CreateOrder() {
         return { ...article, uploadedUrls: [] };
       }));
 
+      // 3. ORDER CREATION PHASE
+      setFinalizeStatus('creating');
       await dispatch(createOrder({ 
         clientId: pendingClient.id, 
         tapis: articlesWithUrls.map(a => ({
@@ -212,10 +239,15 @@ export default function CreateOrder() {
           mainImageIndex: a.photos.findIndex(p => p.isPrincipal) !== -1 ? a.photos.findIndex(p => p.isPrincipal) : 0
         })) 
       })).unwrap();
+
       toast.success('Bon de collecte créé avec succès !');
       navigate('/livreur');
     } catch (err) {
-      toast.error(err || 'Erreur lors de la création de la commande');
+      console.error("Finalization error:", err);
+      toast.error(typeof err === 'string' ? err : 'Erreur lors de la création de la commande');
+    } finally {
+      setIsFinalizing(false);
+      setFinalizeStatus('');
     }
   };
 
@@ -442,11 +474,18 @@ export default function CreateOrder() {
 
         <button 
           onClick={handleFinalizeOrder}
-          disabled={loading.createOrder}
-          className="w-full bg-primary-500 hover:bg-primary-600 text-white rounded-2xl py-4 text-sm font-black uppercase tracking-[0.1em] shadow-lg shadow-primary-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+          disabled={loading.createOrder || isFinalizing}
+          className="w-full bg-primary-500 hover:bg-primary-600 text-white rounded-2xl py-4 text-sm font-black uppercase tracking-[0.1em] shadow-lg shadow-primary-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {loading.createOrder ? (
-            <Loader2 className="animate-spin" size={20} />
+          {isFinalizing ? (
+            <>
+              <Loader2 className="animate-spin" size={20} />
+              <span>
+                {finalizeStatus === 'compressing' ? 'Optimisation des photos...' : 
+                 finalizeStatus === 'uploading' ? 'Envoi des images (Merci de patienter)...' : 
+                 'Création du bon de commande...'}
+              </span>
+            </>
           ) : (
             <>
               <CheckCircle size={20} strokeWidth={3} />
