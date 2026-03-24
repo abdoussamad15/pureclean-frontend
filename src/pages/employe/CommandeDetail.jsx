@@ -4,7 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
   ArrowLeft, Loader2, Package, CheckCircle2, Clock, Wrench, Truck,
-  User, CalendarDays, ChevronRight, Upload, Plus, RefreshCw, X, Image as ImageIcon
+  User, CalendarDays, ChevronRight, Upload, Plus, RefreshCw, X, Image as ImageIcon,
+  Receipt
 } from 'lucide-react';
 import {
   fetchCommandeById, updateCommandeStatus, updateTapisEtat,
