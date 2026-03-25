@@ -203,7 +203,7 @@ export default function AllClients() {
                     </span>
                   </div>
                   <button
-                    onClick={() => navigate(`/admin/clients/${client.id}/commandes`)}
+                    onClick={() => navigate(`/admin/clients/${client.id}`)}
                     className="flex items-center gap-1 text-primary-500 text-xs font-black uppercase tracking-widest hover:text-primary-600"
                   >
                     Voir commandes
@@ -283,8 +283,8 @@ export default function AllClients() {
                       </td>
                       <td className="px-6 py-5 text-right">
                         <button 
-                          onClick={() => navigate(`/admin/clients/${client.id}/commandes`)}
-                          className="inline-flex items-center gap-2 text-primary-500 text-[10px] font-black uppercase tracking-widest hover:text-primary-600 active:scale-95 transition-all"
+                          onClick={() => navigate(`/admin/clients/${client.id}`)}
+                                                  className="inline-flex items-center gap-2 text-primary-500 text-[10px] font-black uppercase tracking-widest hover:text-primary-600 active:scale-95 transition-all"
                         >
                           Détails <ChevronRight size={14} strokeWidth={3} />
                         </button>
