@@ -234,7 +234,7 @@ const DeliveryCard = ({ order, onPay, onCancel, onShowGallery, isOptimized }) =>
         <div>
           <div className="flex justify-between items-start gap-3 mb-3">
             <div className="min-w-0">
-              <h3 className="text-base font-black text-text-primary tracking-tight truncate uppercase">#{order.numeroCommande} • {order.client?.nom || 'Client'}</h3>
+              <h3 className="text-base font-black text-text-primary tracking-tight truncate uppercase">#{order.numeroCommande} • {order.client?.nom || order.client?.name || order.client?.fullName || 'Client'}</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="bg-green-100 text-green-700 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-green-200">
                   PRÊT
